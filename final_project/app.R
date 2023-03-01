@@ -49,25 +49,57 @@ yearRange<-sort(unique(as.numeric(NewData$Year)), decreasing=TRUE)
 countriesAplhabeticalOrder <- sort(unique(NewData$NAME), decreasing = FALSE)
 
 
-#UI - ShinyDashboard
+# Define UI for application that draws a histogram
 ui <- dashboardPage(
-  dashboardHeader(title="ShinyR Final Project", titleWidth = 450),
+  dashboardHeader(title = "ShinyR Final Project",
+                  titleWidth = 650
+  ),
   dashboardSidebar(
-    selectInput("dataYear", "Year", choices=yearRange, selected=yearRange[1]),
-    selectInput('country','Country', choices = countriesAplhabeticalOrder, 
-                multiple = FALSE, 
-                selected = countriesAplhabeticalOrder[1])
+    # sidebarmenu
+    sidebarMenu(
+      id = "sidebar",
+      
+      #first menuitem
+      menuItem("Dataset", tabName = "data", icon=icon("chart-line")),
+      menuItem(text = "Visualization", tabName = "viz", icon=icon("chart-line")),
+      
+      selectInput("dataYear", "Year", choices=yearRange, selected=yearRange[1]),
+      selectInput('country','Country', choices = countriesAplhabeticalOrder, 
+                  multiple = FALSE, 
+                  selected = countriesAplhabeticalOrder[1])
+      
+    )
   ),
   dashboardBody(
-    fluidRow(
-      column(width = 10,
-             #Leaflet Map
-             box(width = NULL, solidHeader = TRUE, leafletOutput("worldMap", height=400)))
+    tabItems(
+      #first tab item 
+      tabItem(tabName = "data",
+              #tab box
+              tabBox(id="t1", width=12,
+                     tabPanel("About", icon=icon("address-card"), fluidRow(
+                       column(width = 4, tags$br(),
+                              tags$p("Introduction"))
+                     )),
+                     tabPanel(title = "Data", icon=icon("address-card"), dataTableOutput("dataT"))
+              )
+      ),
+      
+      # second tab item or landing page
+      tabItem(tabName = "viz",
+              tabBox(id="t2", width = 12,
+                     fluidRow(
+                       column(width = 10,
+                              #Leaflet Map
+                              box(width = NULL, solidHeader = TRUE, leafletOutput("worldMap", height=400)))
+                     )
+              ),
+      )
     )
   )
 )
 
 
+#server
 server <- function(input, output, session) {
   
   #output map
@@ -77,3 +109,5 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+
