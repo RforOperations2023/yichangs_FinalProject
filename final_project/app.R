@@ -22,21 +22,32 @@ df <- read.csv('data.csv', header=TRUE, sep=",")
 # Measures divided into columns 
 df_table <- read.csv("data_table.csv", header=TRUE, sep=",")
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
+# world shape file
+WorldMap <- readOGR('TM_WORLD_BORDERS-0.3/TM_WORLD_BORDERS-0.3.shp')
 
-    # Application title
-    titlePanel(""),
+#remove unused datapoints for World Map
+WorldMap <- subset(WorldMap, is.element(WorldMap$ISO3,SCI$Country_code))
 
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-        ),
+#Align shapefile with datasets
+NewData <- SCI[order(match(SCI$Country_code, WorldMap$ISO3)),]
 
-        # Show a plot of the generated distribution
-        mainPanel(
-        )
-    )
+NewData_Table <- SCI_Table[order(match(SCI_Table$Country.Code, WorldMap$ISO3)),]
+
+
+#Remove row names and drop 'X' column
+rownames(NewData) <- c()
+
+rownames(NewData_Table) <- c()
+
+NewData <- select(NewData,-c(X))
+
+NewData_Table <- select(NewData_Table,-c(X))
+
+
+ui <- dashboardPage(
+  dashboardHeader(),
+  dashboardSidebar(),
+  dashboardBody()
 )
 
 # Define server logic required to draw a histogram
