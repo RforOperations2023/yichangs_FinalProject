@@ -2,7 +2,6 @@
 # World Shape Data Source: http://thematicmapping.org/downloads/world_borders.php
 # Data Source: https://datacatalog.worldbank.org/dataset/data-statistical-capacity
 #
-#
 
 library(shiny)
 library(rgdal)
@@ -15,7 +14,6 @@ library(scales)
 library(rsconnect)
 
 
-
 # Load Data
 df <- read.csv('data.csv', header=TRUE, sep=",")
 
@@ -26,12 +24,12 @@ df_table <- read.csv("data_table.csv", header=TRUE, sep=",")
 WorldMap <- readOGR('TM_WORLD_BORDERS-0.3/TM_WORLD_BORDERS-0.3.shp')
 
 #remove unused datapoints for World Map
-WorldMap <- subset(WorldMap, is.element(WorldMap$ISO3,SCI$Country_code))
+WorldMap <- subset(WorldMap, is.element(WorldMap$ISO3,df$Country_code))
 
 #Align shapefile with datasets
-NewData <- SCI[order(match(SCI$Country_code, WorldMap$ISO3)),]
+NewData <- df[order(match(df$Country_code, WorldMap$ISO3)),]
 
-NewData_Table <- SCI_Table[order(match(SCI_Table$Country.Code, WorldMap$ISO3)),]
+NewData_Table <- df_table[order(match(df_table$Country.Code, WorldMap$ISO3)),]
 
 
 #Remove row names and drop 'X' column
@@ -44,15 +42,34 @@ NewData <- select(NewData,-c(X))
 NewData_Table <- select(NewData_Table,-c(X))
 
 
+#Sorting years
+yearRange<-sort(unique(as.numeric(NewData$Year)), decreasing=TRUE)
+
+#Sorting countries
+countriesAplhabeticalOrder <- sort(unique(NewData$NAME), decreasing = FALSE)
+
+#UI - ShinyDashboard
 ui <- dashboardPage(
-  dashboardHeader(),
-  dashboardSidebar(),
-  dashboardBody()
+  dashboardHeader(title="ShinyR Final Project", titleWidth = 450),
+  dashboardSidebar(
+    
+  ),
+  dashboardBody(
+    fluidRow(
+      column(width = 10,
+             #Leaflet Map
+             box(width = NULL, solidHeader = TRUE, leafletOutput("worldMap", height=400)))
+    )
+  )
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
+
+server <- function(input, output, session) {
   
+  
+  #output map
+  output$worldMap <- renderLeaflet({
+  })
 }
 
 # Run the application 
