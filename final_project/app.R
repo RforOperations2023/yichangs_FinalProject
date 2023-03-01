@@ -48,11 +48,15 @@ yearRange<-sort(unique(as.numeric(NewData$Year)), decreasing=TRUE)
 #Sorting countries
 countriesAplhabeticalOrder <- sort(unique(NewData$NAME), decreasing = FALSE)
 
+
 #UI - ShinyDashboard
 ui <- dashboardPage(
   dashboardHeader(title="ShinyR Final Project", titleWidth = 450),
   dashboardSidebar(
-    
+    selectInput("dataYear", "Year", choices=yearRange, selected=yearRange[1]),
+    selectInput('country','Country', choices = countriesAplhabeticalOrder, 
+                multiple = FALSE, 
+                selected = countriesAplhabeticalOrder[1])
   ),
   dashboardBody(
     fluidRow(
@@ -65,7 +69,6 @@ ui <- dashboardPage(
 
 
 server <- function(input, output, session) {
-  
   
   #output map
   output$worldMap <- renderLeaflet({
