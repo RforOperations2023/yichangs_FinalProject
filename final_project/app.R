@@ -49,6 +49,11 @@ yearRange<-sort(unique(as.numeric(NewData$Year)), decreasing=TRUE)
 countriesAplhabeticalOrder <- sort(unique(NewData$NAME), decreasing = FALSE)
 
 
+#Bins for choropleth
+bins <- c(0,10,20,30,40,50,60,70,80,90,100)
+pal <- colorBin('RdYlBu', domain = c(0,100), bins = bins)
+
+
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
   dashboardHeader(title = "ShinyR Final Project",
@@ -101,10 +106,45 @@ ui <- dashboardPage(
 
 #server
 server <- function(input, output, session) {
+  #Data used for Choropleth Map
+  data_input <- reactive({
+    NewData %>%
+      filter(Year == input$dataYear)
+    
+  })
+  
+  #align data
+  data_input_ordered <- reactive({
+    data_input()[order(match(data_input()$Country_code, WorldMap$ISO3)),]
+  })
+  
   
   #output map
   output$worldMap <- renderLeaflet({
+    leaflet() %>%
+      setView(0, 32, 2) %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(data = WorldMap, 
+                  weight = 1, 
+                  smoothFactor = 0.5, 
+                  color='white', 
+                  fillOpacity = 0.8,
+                  fillColor = pal(data_input_ordered()$Percentage),
+                  highlightOptions = highlightOptions(color = "black", weight = 3,
+                                                      bringToFront = TRUE)) %>%
+      addLegend(pal = pal,
+                title = "SCI Score",
+                values = data_input_ordered()$Percentage,
+                opacity = 0.7,
+                position = 'topright')
   })
+  
+  observeEvent(input$WorldMap_shape_click, {
+    p <- input$WorldMap_shape_click
+    print(p)
+  })
+  
+  
 }
 
 # Run the application 
