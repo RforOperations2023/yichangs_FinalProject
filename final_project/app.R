@@ -275,8 +275,8 @@ server <- function(input, output, session) {
   
   # Bar Charts - Country wise trend
   output$yearPlot <- renderPlot({
-    ggplot(data = data_input(), aes_string(x = "NAME", y = data_input()$Percentage)) 
-    + geom_bar(stat = "identity", fill="orange") +
+    ggplot(data = data_input(), aes_string(x = "NAME", y = data_input()$Percentage)) +
+    geom_bar(stat = "identity", fill="orange") +
       theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
       labs(x = "Countries", y = "Score", title=paste0("SCI Score for ", data_input()$Year))
   })

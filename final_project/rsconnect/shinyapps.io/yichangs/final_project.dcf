@@ -1,0 +1,13 @@
+name: final_project
+title: final_project
+username:
+account: yichangs
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8475032
+bundleId: 6914797
+url: https://yichangs.shinyapps.io/final_project/
+when: 1677913769.92526
+lastSyncTime: 1677913769.92527
+asMultiple: FALSE
+asStatic: FALSE
