@@ -150,6 +150,16 @@ server <- function(input, output, session) {
   )
   
   
+  #Map labels when hovered over
+  labels <- reactive({
+    paste('<p>', '<b>', data_input_Table_Ordered()$NAME, '</b>', ' (', data_input_Table_Ordered()$Country.Code, ')', '<p>',
+          '<p>', '<b>', 'Average Score: ', round(data_input_Table_Ordered()$Average, digits = 3),'</b>', '<p>',
+          '<p>', 'Periodicity Score: ', round(data_input_Table_Ordered()$Periodicity, digits = 3),'<p>',
+          '<p>', 'Source Score: ', round(data_input_Table_Ordered()$Source, digits = 3),'<p>',
+          '<p>', 'Methodology Score: ', round(data_input_Table_Ordered()$Methodology, digits = 3),'<p>') 
+  })
+  
+  
   #output map
   output$worldMap <- renderLeaflet({
     leaflet() %>%
@@ -162,7 +172,8 @@ server <- function(input, output, session) {
                   fillOpacity = 0.8,
                   fillColor = pal(data_input_ordered()$Percentage),
                   highlightOptions = highlightOptions(color = "black", weight = 3,
-                                                      bringToFront = TRUE)) %>%
+                                                      bringToFront = TRUE),
+                  label = lapply(labels(), HTML)) %>%
       addLegend(pal = pal,
                 title = "SCI Score",
                 values = data_input_ordered()$Percentage,
