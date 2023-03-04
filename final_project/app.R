@@ -71,7 +71,11 @@ ui <- dashboardPage(
       selectInput("dataYear", "Year", choices=yearRange, selected=yearRange[1]),
       selectInput('country','Country', choices = countriesAplhabeticalOrder, 
                   multiple = FALSE, 
-                  selected = countriesAplhabeticalOrder[1])
+                  selected = countriesAplhabeticalOrder[1]),
+      radioButtons("dataMeasure", "Measure", choices=c('Average Score' = 'Average',
+                                                       'Periodicity Score' = 'Periodicity',
+                                                       'Source Score' = 'Source',
+                                                       'Methodology Score' = 'Methodology'))
       
     )
   ),
@@ -95,9 +99,13 @@ ui <- dashboardPage(
                      fluidRow(
                        column(width = 10,
                               #Leaflet Map
-                              box(width = NULL, solidHeader = TRUE, leafletOutput("worldMap", height=400)))
+                              box(width = NULL, solidHeader = TRUE, leafletOutput("worldMap", height=400)),
+                              #Line plot
+                              box(width = NULL,
+                                  plotOutput("countryPlot")
+                              ))
                      )
-              ),
+              )
       )
     )
   )
@@ -109,7 +117,8 @@ server <- function(input, output, session) {
   #Data used for Choropleth Map
   data_input <- reactive({
     NewData %>%
-      filter(Year == input$dataYear)
+      filter(Year == input$dataYear) %>%
+      filter(Indicator_Name == input$dataMeasure)
     
   })
   
@@ -144,6 +153,25 @@ server <- function(input, output, session) {
     print(p)
   })
   
+  
+  #Line Plot Output
+  data_input_plot <- reactive({
+    NewData %>%
+      filter(Indicator_Name == input$dataMeasure) %>%
+      filter(NAME == input$country)
+  })
+  
+  output$countryPlot = renderPlot({
+    ggplot(data_input_plot()) +
+      geom_line(mapping = aes(x = unique(NewData$Year),
+                              y = data_input_plot()$Percentage, 
+                              colour = data_input_plot()$NAME),
+                color='darkblue') + 
+      labs(x = "Years", y = "Score", 
+           title = paste("SCI Score for", unique(data_input_plot()$NAME))) +
+      scale_x_continuous(breaks=pretty_breaks()) +
+      scale_colour_discrete(name = "Country")
+  })
   
 }
 
