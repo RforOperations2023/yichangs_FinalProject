@@ -103,7 +103,9 @@ ui <- dashboardPage(
                               #Line plot
                               box(width = NULL,
                                   plotOutput("countryPlot")
-                              ))
+                              ),
+                              box(width = NULL,
+                                  plotOutput("yearPlot")))
                      )
               )
       )
@@ -172,6 +174,19 @@ server <- function(input, output, session) {
       scale_x_continuous(breaks=pretty_breaks()) +
       scale_colour_discrete(name = "Country")
   })
+  
+  output$yearPlot = renderPlot({
+    ggplot(data_input()) +
+      geom_line(mapping = aes(x = unique(NewData$Year),
+                              y = data_input_plot()$Percentage, 
+                              colour = data_input_plot()$NAME),
+                color='darkblue') + 
+      labs(x = "Years", y = "Score", 
+           title = paste("SCI Score for", unique(data_input_plot()$NAME))) +
+      scale_x_continuous(breaks=pretty_breaks()) +
+      scale_colour_discrete(name = "Country")
+  })
+  
   
 }
 
