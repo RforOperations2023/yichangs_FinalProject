@@ -56,7 +56,7 @@ pal <- colorBin('RdYlBu', domain = c(0,100), bins = bins)
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
-  dashboardHeader(title = "ShinyR Final Project",
+  dashboardHeader(title = "Final Project - SCI",
                   titleWidth = 650
   ),
   dashboardSidebar(
@@ -66,12 +66,19 @@ ui <- dashboardPage(
       
       #first menuitem
       menuItem("Dataset", tabName = "data", icon=icon("chart-line")),
+      
+      #second menuitem
       menuItem(text = "Visualization", tabName = "viz", icon=icon("chart-line")),
       
+      #first input
       selectInput("dataYear", "Year", choices=yearRange, selected=yearRange[1]),
+      
+      #second input
       selectInput('country','Country', choices = countriesAplhabeticalOrder, 
                   multiple = FALSE, 
                   selected = countriesAplhabeticalOrder[1]),
+      
+      #third input
       radioButtons("dataMeasure", "Measure", choices=c('Average Score' = 'Average',
                                                        'Periodicity Score' = 'Periodicity',
                                                        'Source Score' = 'Source',
@@ -79,6 +86,8 @@ ui <- dashboardPage(
       
     )
   ),
+  
+  #dashboard body
   dashboardBody(
     tabItems(
       #first tab item 
@@ -86,10 +95,38 @@ ui <- dashboardPage(
               #tab box
               tabBox(id="t1", width=12,
                      tabPanel("About", icon=icon("address-card"), fluidRow(
-                       column(width = 4, tags$br(),
-                              tags$p("Introduction"))
+                       column(width = 6, tags$br(),
+                              tags$p("The Statistical Capacity Indicator (SCI) 
+                              is a composite index that measures the capacity of 
+                              a country's statistical system to collect, process, 
+                              and disseminate reliable and timely data. It was 
+                              developed by the World Bank in collaboration with 
+                              other international organizations such as the 
+                              United Nations, the International Monetary Fund, 
+                              and the Organization for Economic Cooperation and 
+                              Development.
+                              
+                              The SCI is based on 25 indicators grouped into three 
+                              dimensions: methodology, source data, and periodicity 
+                              and timeliness. The methodology dimension assesses 
+                              the adequacy of the statistical techniques used to 
+                              collect and process data. The source data dimension 
+                              measures the availability and quality of the data 
+                              sources used. The periodicity and timeliness dimension 
+                              evaluates the frequency and speed of data dissemination.
+                              The SCI ranges from 0 to 100, with higher scores 
+                              indicating stronger statistical capacity. 
+                              
+                              A score of 50 or above is considered to be sufficient for 
+                              countries to meet their basic statistical needs. 
+                              The SCI is used by development agencies and 
+                              policymakers to identify gaps in statistical 
+                              capacity and to prioritize investments in 
+                                     statistical systems."))
                      )),
-                     tabPanel(title = "Data", icon=icon("address-card"), dataTableOutput("worldTable"), br(),br(), downloadButton("downloadData", "Download"))
+                     tabPanel(title = "Data", icon=icon("address-card"), 
+                              dataTableOutput("worldTable"), br(),br(), 
+                              downloadButton("downloadData", "Download"))
               )
       ),
       
@@ -99,11 +136,13 @@ ui <- dashboardPage(
                      fluidRow(
                        column(width = 10,
                               #Leaflet Map
-                              box(width = NULL, solidHeader = TRUE, leafletOutput("worldMap", height=400)),
+                              box(width = NULL, solidHeader = TRUE, 
+                                  leafletOutput("worldMap", height=400)),
                               #Line plot
                               box(width = NULL,
                                   plotOutput("countryPlot")
                               ),
+                              #Box plot
                               box(width = NULL,
                                   plotOutput("yearPlot")))
                      )
@@ -144,7 +183,9 @@ server <- function(input, output, session) {
   #Table output
   output$worldTable <- renderDataTable(NewData_Table,
                                        server = FALSE, 
-                                       colnames = c('Country', 'Country Code', 'Year', 'Periodicity', 'Source','Methodology','Average'),
+                                       colnames = c('Country', 'Country Code', 
+                                                    'Year', 'Periodicity', 'Source',
+                                                    'Methodology','Average'),
                                        options = list(pageLength = 5, autoWidth = TRUE),
                                        rownames= FALSE
   )
@@ -152,11 +193,16 @@ server <- function(input, output, session) {
   
   #Map labels when hovered over
   labels <- reactive({
-    paste('<p>', '<b>', data_input_Table_Ordered()$NAME, '</b>', ' (', data_input_Table_Ordered()$Country.Code, ')', '<p>',
-          '<p>', '<b>', 'Average Score: ', round(data_input_Table_Ordered()$Average, digits = 3),'</b>', '<p>',
-          '<p>', 'Periodicity Score: ', round(data_input_Table_Ordered()$Periodicity, digits = 3),'<p>',
-          '<p>', 'Source Score: ', round(data_input_Table_Ordered()$Source, digits = 3),'<p>',
-          '<p>', 'Methodology Score: ', round(data_input_Table_Ordered()$Methodology, digits = 3),'<p>') 
+    paste('<p>', '<b>', data_input_Table_Ordered()$NAME, '</b>', 
+          ' (', data_input_Table_Ordered()$Country.Code, ')', '<p>',
+          '<p>', '<b>', 'Average Score: ', 
+          round(data_input_Table_Ordered()$Average, digits = 3),'</b>', '<p>',
+          '<p>', 'Periodicity Score: ', 
+          round(data_input_Table_Ordered()$Periodicity, digits = 3),'<p>',
+          '<p>', 'Source Score: ', 
+          round(data_input_Table_Ordered()$Source, digits = 3),'<p>',
+          '<p>', 'Methodology Score: ', 
+          round(data_input_Table_Ordered()$Methodology, digits = 3),'<p>') 
   })
   
   
@@ -173,13 +219,33 @@ server <- function(input, output, session) {
                   fillColor = pal(data_input_ordered()$Percentage),
                   highlightOptions = highlightOptions(color = "black", weight = 3,
                                                       bringToFront = TRUE),
-                  label = lapply(labels(), HTML)) %>%
+                  label = lapply(labels(), HTML), group = "Default") %>%
       addLegend(pal = pal,
                 title = "SCI Score",
                 values = data_input_ordered()$Percentage,
                 opacity = 0.7,
-                position = 'topright')
+                position = 'topright') %>%
+      addLayersControl(
+                baseGroups = c("Default",
+                     "Map with Markers")
+    )
   })
+  
+  
+  # observe add maker layer selections
+  observe({
+    
+    # plot proxy
+    leafletProxy("worldMap", data = WorldMap) %>%
+    addAwesomeMarkers(lng = -2.79545, lat = 54.04321, 
+                      layerId = "hospital", 
+                      label = "Hospital",
+                      group = "Map with Markers")
+  })
+  
+  
+  
+  
   
   observeEvent(input$WorldMap_shape_click, {
     p <- input$WorldMap_shape_click
@@ -209,7 +275,8 @@ server <- function(input, output, session) {
   
   # Bar Charts - Country wise trend
   output$yearPlot <- renderPlot({
-    ggplot(data = data_input(), aes_string(x = "NAME", y = data_input()$Percentage)) + geom_bar(stat = "identity", fill="orange") +
+    ggplot(data = data_input(), aes_string(x = "NAME", y = data_input()$Percentage)) 
+    + geom_bar(stat = "identity", fill="orange") +
       theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
       labs(x = "Countries", y = "Score", title=paste0("SCI Score for ", data_input()$Year))
   })
