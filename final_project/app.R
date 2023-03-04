@@ -89,7 +89,7 @@ ui <- dashboardPage(
                        column(width = 4, tags$br(),
                               tags$p("Introduction"))
                      )),
-                     tabPanel(title = "Data", icon=icon("address-card"), dataTableOutput("dataT"))
+                     tabPanel(title = "Data", icon=icon("address-card"), dataTableOutput("worldTable"), br(),br(), downloadButton("downloadData", "Download"))
               )
       ),
       
@@ -128,6 +128,26 @@ server <- function(input, output, session) {
   data_input_ordered <- reactive({
     data_input()[order(match(data_input()$Country_code, WorldMap$ISO3)),]
   })
+  
+  #Data used for Table
+  data_input_Table <- reactive({
+    NewData_Table %>%
+      filter(Year == input$dataYear) 
+  })
+  
+  #align data
+  data_input_Table_Ordered <- reactive({
+    data_input_Table()[order(match(data_input_Table()$Country.Code, WorldMap$ISO3)),]
+  })
+  
+  
+  #Table output
+  output$worldTable <- renderDataTable(NewData_Table,
+                                       server = FALSE, 
+                                       colnames = c('Country', 'Country Code', 'Year', 'Periodicity', 'Source','Methodology','Average'),
+                                       options = list(pageLength = 5, autoWidth = TRUE),
+                                       rownames= FALSE
+  )
   
   
   #output map
@@ -182,6 +202,16 @@ server <- function(input, output, session) {
       theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
       labs(x = "Countries", y = "Score", title=paste0("SCI Score for ", data_input()$Year))
   })
+  
+  # download data function
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(NewData_Table, file)
+    }
+  )
   
   
 }
