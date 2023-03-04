@@ -175,16 +175,12 @@ server <- function(input, output, session) {
       scale_colour_discrete(name = "Country")
   })
   
-  output$yearPlot = renderPlot({
-    ggplot(data_input()) +
-      geom_line(mapping = aes(x = unique(NewData$Year),
-                              y = data_input_plot()$Percentage, 
-                              colour = data_input_plot()$NAME),
-                color='darkblue') + 
-      labs(x = "Years", y = "Score", 
-           title = paste("SCI Score for", unique(data_input_plot()$NAME))) +
-      scale_x_continuous(breaks=pretty_breaks()) +
-      scale_colour_discrete(name = "Country")
+  
+  # Bar Charts - Country wise trend
+  output$yearPlot <- renderPlot({
+    ggplot(data = data_input(), aes_string(x = "NAME", y = data_input()$Percentage)) + geom_bar(stat = "identity", fill="orange") +
+      theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+      labs(x = "Countries", y = "Score", title=paste0("SCI Score for ", data_input()$Year))
   })
   
   
